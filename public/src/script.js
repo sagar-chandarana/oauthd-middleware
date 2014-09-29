@@ -1,5 +1,6 @@
 function init_oauthio() {
 	OAuth.initialize(credentials.key);
+	OAuth.setOAuthdURL("http://localhost:6284");
 }
 
 function retrieve_token(callback) {
@@ -43,24 +44,25 @@ function authenticate(token, callback) {
 		});
 }
 
-function retrieve_user_info(callback) {
-	$.ajax({
-		url: '/me',
-		success: function (data, status) {
-			callback(data);
-		},
-		error: function (data) {
-
-		}
-	});
+function retrieve_user_info(creds, callback) {
+	console.log('creds', creds);
+	var request = OAuth.create('google', creds);
+	request.get('/plus/v1/people/me')
+	.done( console.log.bind(console))
+	.fail( console.log.bind(console));
 }
 
-$('#login_button').click(function() {
+function random() {
+console.log('calling random.')
+$.ajax({url: '/random', success: console.log.bind(console), error: console.log.bind(console)});
+}
+
+function go() {
 	init_oauthio();
 	retrieve_token(function(err, token) {
-		authenticate(token, function(err) {
+		authenticate(token, function(err, creds) {
 			if (!err) {
-				retrieve_user_info(function(user_data) {
+				retrieve_user_info(creds, function(user_data) {
 					$('#name_box').html(user_data.name)
 					$('#email_box').html(user_data.email);
 					$('#img_box').attr('src', user_data.avatar);
@@ -68,4 +70,6 @@ $('#login_button').click(function() {
 			}
 		});
 	});
-});
+}
+
+$('#login_button').click(go);

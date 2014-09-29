@@ -1,6 +1,6 @@
 {
-  "name": "sdk-node-tutorial",
-  "version": "0.0.0",
+  "name": "middleware-for-oauthd",
+  "version": "0.0.1",
   "description": "Learn how to use OAuth.io server-side flow with Nodejs",
   "main": "app.js",
   "scripts": {
@@ -10,7 +10,7 @@
   "license": "Apache2",
   "dependencies": {
     "express": "^4.1.2",
-    "oauthio": "^0.1.0",
+    "oauthio": "^0.3.1",
     "cookie-parser": "^1.0.1",
     "express-session": "^1.0.4",
     "body-parser": "^1.0.2"

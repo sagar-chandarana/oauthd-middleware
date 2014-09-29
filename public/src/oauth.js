@@ -2,7 +2,7 @@
 module.exports = {
   oauthd_url: "https://oauth.io",
   oauthd_api: "https://oauth.io/api",
-  version: "web-0.2.0",
+  version: "web-0.2.4",
   options: {}
 };
 
@@ -143,7 +143,7 @@ module.exports = function(window, document, jQuery, navigator) {
             return oauthio.request.mkHttp(provider, tokens, request, method);
           };
           make_res_endpoint = function(method, url) {
-            return oauthio.request.mkHttpEndpoint(data.provider, tokens, request, method, url);
+            return oauthio.request.mkHttpEndpoint(provider, tokens, request, method, url);
           };
           res = {};
           for (i in tokens) {
@@ -154,13 +154,12 @@ module.exports = function(window, document, jQuery, navigator) {
           res.put = make_res("PUT");
           res.patch = make_res("PATCH");
           res.del = make_res("DELETE");
-          res.me = function(opts) {
-            oauthio.request.mkHttpMe(data.provider, tokens, request, "GET");
-          };
+          res.me = oauthio.request.mkHttpMe(provider, tokens, request, "GET");
           return res;
         },
         popup: function(provider, opts, callback) {
-          var defer, frm, getMessage, res, url, wnd, wndTimeout, wnd_options, wnd_settings, _ref;
+          var defer, frm, getMessage, gotmessage, interval, res, url, wnd, wndTimeout, wnd_options, wnd_settings, _ref;
+          gotmessage = false;
           getMessage = function(e) {
             if (e.origin !== config.oauthd_base) {
               return;
@@ -169,7 +168,8 @@ module.exports = function(window, document, jQuery, navigator) {
               wnd.close();
             } catch (_error) {}
             opts.data = e.data;
-            return oauthio.request.sendCallback(opts, defer);
+            oauthio.request.sendCallback(opts, defer);
+            return gotmessage = true;
           };
           wnd = void 0;
           frm = void 0;
@@ -180,7 +180,11 @@ module.exports = function(window, document, jQuery, navigator) {
             if (defer != null) {
               defer.reject(new Error("OAuth object must be initialized"));
             }
-            return callback(new Error("OAuth object must be initialized"));
+            if (callback == null) {
+              return defer.promise();
+            } else {
+              return callback(new Error("OAuth object must be initialized"));
+            }
           }
           if (arguments.length === 2 && typeof opts === 'function') {
             callback = opts;
@@ -195,7 +199,7 @@ module.exports = function(window, document, jQuery, navigator) {
               if (callback) {
                 return callback(null, res);
               } else {
-                return;
+                return defer.promise();
               }
             }
           }
@@ -209,18 +213,27 @@ module.exports = function(window, document, jQuery, navigator) {
           if (opts) {
             url += "&opts=" + encodeURIComponent(JSON.stringify(opts));
           }
-          wnd_settings = {
-            width: Math.floor(window.outerWidth * 0.8),
-            height: Math.floor(window.outerHeight * 0.5)
-          };
-          if (wnd_settings.height < 350) {
-            wnd_settings.height = 350;
+          if (opts.wnd_settings) {
+            wnd_settings = opts.wnd_settings;
+            delete opts.wnd_settings;
+          } else {
+            wnd_settings = {
+              width: Math.floor(window.outerWidth * 0.8),
+              height: Math.floor(window.outerHeight * 0.5)
+            };
           }
-          if (wnd_settings.width < 800) {
-            wnd_settings.width = 800;
+          if (wnd_settings.height == null) {
+            wnd_settings.height = (wnd_settings.height < 350 ? 350 : void 0);
           }
-          wnd_settings.left = window.screenX + (window.outerWidth - wnd_settings.width) / 2;
-          wnd_settings.top = window.screenY + (window.outerHeight - wnd_settings.height) / 8;
+          if (wnd_settings.width == null) {
+            wnd_settings.width = (wnd_settings.width < 800 ? 800 : void 0);
+          }
+          if (wnd_settings.left == null) {
+            wnd_settings.left = window.screenX + (window.outerWidth - wnd_settings.width) / 2;
+          }
+          if (wnd_settings.top == null) {
+            wnd_settings.top = window.screenY + (window.outerHeight - wnd_settings.height) / 8;
+          }
           wnd_options = "width=" + wnd_settings.width + ",height=" + wnd_settings.height;
           wnd_options += ",toolbar=0,scrollbars=1,status=1,resizable=1,location=1,menuBar=0";
           wnd_options += ",left=" + wnd_settings.left + ",top=" + wnd_settings.top;
@@ -290,6 +303,19 @@ module.exports = function(window, document, jQuery, navigator) {
           wnd = window.open(url, "Authorization", wnd_options);
           if (wnd) {
             wnd.focus();
+            interval = window.setInterval(function() {
+              if (wnd === null || wnd.closed) {
+                window.clearInterval(interval);
+                if (!gotmessage) {
+                  if (defer != null) {
+                    defer.reject(new Error("The popup was closed"));
+                  }
+                  if (opts.callback && typeof opts.callback === "function") {
+                    return opts.callback(new Error("The popup was closed"));
+                  }
+                }
+              }
+            }, 500);
           } else {
             if (defer != null) {
               defer.reject(new Error("Could not open a popup"));
@@ -448,7 +474,7 @@ var Url,
 
 Url = require('../tools/url')();
 
-module.exports = function($, config, client_states, cache) {
+module.exports = function($, config, client_states, cache, providers_api) {
   return {
     http: function(opts) {
       var defer, desc_opts, doRequest, i, options;
@@ -638,7 +664,7 @@ module.exports = function($, config, client_states, cache) {
       };
     },
     sendCallback: function(opts, defer) {
-      var base, data, e, err, i, make_res, request, res, tokens;
+      var base, data, e, err, i, k, make_res, request, res, tokens, v;
       base = this;
       data = void 0;
       err = void 0;
@@ -688,6 +714,11 @@ module.exports = function($, config, client_states, cache) {
         } else {
           return;
         }
+      }
+      data.state = data.state.replace(/\s+/g, "");
+      for (k in client_states) {
+        v = client_states[k];
+        client_states[k] = v.replace(/\s+/g, "");
       }
       if (!data.state || client_states.indexOf(data.state) === -1) {
         if (defer != null) {

@@ -48,13 +48,13 @@ function retrieve_user_info(creds, callback) {
 	console.log('creds', creds);
 	var request = OAuth.create('google', creds);
 	request.get('/plus/v1/people/me')
-	.done( console.log.bind(console))
-	.fail( console.log.bind(console));
+	.done( callback)
+	.fail( console.error.bind(console));
 }
 
 function random() {
 console.log('calling random.')
-$.ajax({url: '/random', success: console.log.bind(console), error: console.log.bind(console)});
+$.ajax({url: '/random', success: console.log.bind(console), error: console.error.bind(console)});
 }
 
 function go() {
@@ -63,10 +63,12 @@ function go() {
 		authenticate(token, function(err, creds) {
 			if (!err) {
 				retrieve_user_info(creds, function(user_data) {
-					$('#name_box').html(user_data.name)
-					$('#email_box').html(user_data.email);
-					$('#img_box').attr('src', user_data.avatar);
+					$('#name_box').html(user_data.displayName)
+					$('#email_box').html(user_data.emails[0].value);
+					$('#img_box').attr('src', user_data.image.url);
 				});
+			} else {
+				console.error(err)
 			}
 		});
 	});

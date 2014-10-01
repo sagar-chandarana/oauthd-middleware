@@ -58,7 +58,7 @@ app.post('/oauth/signin', function (req, res) {
 			var creds = request_object.getCredentials();
 			var algorithm = 'aes256';
 			var key = 'ahLvnbEuNVtSH86';
-			var tokenObj = {"app": app, "g": Date.now(), "e": 24 * 3600 * 1000}; //24 hours token
+			var tokenObj = {"appname": app, "g": Date.now(), "e": 24 * 3600 * 1000}; //24 hours token
 			var cipher = crypto.createCipher(algorithm, key);  
 			var encryptedToken = cipher.update(JSON.stringify(tokenObj), 'utf8', 'hex') + cipher.final('hex');
 			var obj = {

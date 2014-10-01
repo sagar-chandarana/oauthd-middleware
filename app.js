@@ -1,7 +1,9 @@
 var express = require('express');
+var request = require('request');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 var cookieParser = require('cookie-parser');
+var crypto = require('crypto');
 
 /* Requiring the lib */
 
@@ -16,7 +18,7 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(session({
-    secret: 'keyboard cat',
+    secret: 'keyboard dog',
     saveUninitialized: true, 
     resave: true
 }	));
@@ -24,7 +26,6 @@ app.use(session({
 /* Initialization */
 var oauth = require('oauthio');
 oauth.setOAuthdUrl("http://localhost:6284", '/');
-oauth.initialize('70498cfce63946eea646e98e3d6a7644', '70498cfce63946eea646e98e3d6a7644');
 
 /* Endpoints */
 app.get('/oauth/token', function (req, res) {
@@ -37,9 +38,14 @@ app.get('/oauth/token', function (req, res) {
 
 app.post('/oauth/signin', function (req, res) {
 	var code = req.body.code;
-	console.log('signing in:', req.session);
-	oauth.auth('google', req.session, {
-		code: code
+	var app = req.body.app;
+	var secret = req.body.secret;
+	var provider = 'google';
+	//request.get(oauth.getOAuthdUrl() + 'api/apps/' + app, console.log.bind(console));
+	oauth.auth(provider, req.session, {
+		code: code,
+		public_key: app,
+		secret_key: secret
 	})
 	.then(function (request_object) {
 		// Here the user is authenticated, and the access token 
@@ -47,36 +53,43 @@ app.post('/oauth/signin', function (req, res) {
 		// Continue the tutorial or checkout the step-4 to get
 		// the code for the request
 		
-		//TODO: give only a few things
-		res.status(200).send(request_object.getCredentials());
+		request_object.get('/plus/v1/people/me')
+		.then(function (user_data) {
+			var creds = request_object.getCredentials();
+			var algorithm = 'aes256';
+			var key = 'ahLvnbEuNVtSH86';
+			var tokenObj = {"app": app, "g": Date.now(), "e": 24 * 3600 * 1000}; //24 hours token
+			var cipher = crypto.createCipher(algorithm, key);  
+			var encryptedToken = cipher.update(JSON.stringify(tokenObj), 'utf8', 'hex') + cipher.final('hex');
+			var obj = {
+				uid: user_data.id,
+				firstname: user_data.name.givenName,
+				lastname: user_data.name.familyName,
+				email: user_data.emails[0].value,
+				avatar: user_data.image.url,
+				credentials: {
+					provider: {						
+						access_token: creds.credentials,
+						expires_in: creds.expires_in,
+						token_type: creds.token_type,
+						request: creds.request	
+					},
+					appbase: {
+						access_token: encryptedToken,
+						expires_in: tokenObj["e"]
+					}
+				}
+			}
+			res.status(200).send(obj);
+		})
+		.fail(function (e) {
+			res.status(400).send(e);
+		});
+		
+		
 	})
 	.fail(function (e) {
 		console.log('signin', e);
-		res.status(400).send(e);
-	});
-});
-
-app.get('/random', function(req, res) {
-	console.log('random:', req.session);
-	res.status(200).send('haha');
-});
-
-app.get('/me', function (req, res) {
-	// Here we first build a request object from the session with the auth method.
-	// Then we perform a request using the .me() method.
-	// This retrieves a unified object representing the authenticated user.
-	// You could also use .get('/plus/v1/people/me') and map the results to fields usable from
-	// the front-end (which waits for the fields 'name', 'email' and 'avatar').
-	console.log('fetching me:', req.session);
-	oauth.auth('google', req.session)
-	.then(function (request_object) {
-		return request_object.get('/plus/v1/people/me');
-	})
-	.then(function (user_data) {
-		res.json(user_data);
-	})
-	.fail(function (e) {
-		console.log('me', e);
 		res.status(400).send(e);
 	});
 });

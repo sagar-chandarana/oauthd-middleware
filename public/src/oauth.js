@@ -561,6 +561,7 @@ module.exports = function($, config, client_states, cache, providers_api) {
     http_me: function(opts) {
       var defer, desc_opts, doRequest, k, options;
       doRequest = function() {
+        console.log(opts);
         var defer, k, promise, request;
         defer = $ != null ? $.Deferred() : void 0;
         request = options.oauthio.request || {};

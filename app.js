@@ -40,7 +40,7 @@ app.post('/oauth/signin', function (req, res) {
 	var code = req.body.code;
 	var app = req.body.app;
 	var secret = req.body.secret;
-	var provider = 'google';
+	var provider = req.body.provider;
 	//request.get(oauth.getOAuthdUrl() + 'api/apps/' + app, console.log.bind(console));
 	oauth.auth(provider, req.session, {
 		code: code,
@@ -53,34 +53,27 @@ app.post('/oauth/signin', function (req, res) {
 		// Continue the tutorial or checkout the step-4 to get
 		// the code for the request
 		
-		request_object.get('/plus/v1/people/me')
+		request_object.me()
 		.then(function (user_data) {
 			var creds = request_object.getCredentials();
 			var algorithm = 'aes256';
 			var key = 'ahLvnbEuNVtSH86';
-			var tokenObj = {"appname": app, "g": Date.now(), "e": 24 * 3600 * 1000}; //24 hours token
+			var tokenObj = {"appname": app, "g": Date.now(), "e": 24 * 3600 * 1000, "email": user_data.email}; //24 hours token
 			var cipher = crypto.createCipher(algorithm, key);  
 			var encryptedToken = cipher.update(JSON.stringify(tokenObj), 'utf8', 'hex') + cipher.final('hex');
-			var obj = {
-				uid: user_data.id,
-				firstname: user_data.name.givenName,
-				lastname: user_data.name.familyName,
-				email: user_data.emails[0].value,
-				avatar: user_data.image.url,
-				credentials: {
-					provider: {						
-						access_token: creds.access_token,
-						expires_in: creds.expires_in,
-						token_type: creds.token_type,
-						request: creds.request	
-					},
-					appbase: {
-						access_token: encryptedToken,
-						expires_in: tokenObj["e"]
-					}
+			user_data.credentials =  {
+				provider: {						
+					access_token: creds.access_token,
+					expires_in: creds.expires_in,
+					token_type: creds.token_type,
+					request: creds.request	
+				},
+				appbase: {
+					access_token: encryptedToken,
+					expires_in: tokenObj["e"]
 				}
 			}
-			res.status(200).send(obj);
+			res.status(200).send(user_data);
 		})
 		.fail(function (e) {
 			res.status(400).send(e);

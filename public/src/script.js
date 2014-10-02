@@ -31,7 +31,8 @@ function authenticate(token, callback) {
 				data: {
 				    app: credentials.key,
 					code: r.code,
-					secret: credentials.secret
+					secret: credentials.secret,
+					provider: 'google'
 				},
 				success: function(data, status) {
 					callback(null, data);

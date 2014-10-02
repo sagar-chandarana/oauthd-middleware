@@ -29,11 +29,10 @@ oauth.setOAuthdUrl("http://localhost:6284", '/');
 
 /* Endpoints */
 app.get('/oauth/token', function (req, res) {
+    
 	var token = oauth.generateStateToken(req.session);
 
-	res.json({
-		token: token
-	});
+	res.json(token);
 });
 
 app.post('/oauth/signin', function (req, res) {

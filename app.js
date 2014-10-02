@@ -69,7 +69,7 @@ app.post('/oauth/signin', function (req, res) {
 				avatar: user_data.image.url,
 				credentials: {
 					provider: {						
-						access_token: creds.credentials,
+						access_token: creds.access_token,
 						expires_in: creds.expires_in,
 						token_type: creds.token_type,
 						request: creds.request	

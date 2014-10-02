@@ -4,13 +4,13 @@ var bodyParser = require('body-parser');
 var session = require('express-session');
 var cookieParser = require('cookie-parser');
 var crypto = require('crypto');
-
+var cors = require('cors');
 /* Requiring the lib */
 
 var oauth = require('oauthio');
 
 var app = express();
-
+app.use(cors());
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({
   extended: true
@@ -29,9 +29,7 @@ oauth.setOAuthdUrl("http://localhost:6284", '/');
 
 /* Endpoints */
 app.get('/oauth/token', function (req, res) {
-    
 	var token = oauth.generateStateToken(req.session);
-
 	res.json(token);
 });
 

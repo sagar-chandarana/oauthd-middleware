@@ -62,8 +62,8 @@ app.post('/oauth/signin', function (req, res) {
 				provider: {
 				    provider: provider,
 					access_token: creds.access_token,
-					oauth_token: oauth_token,
-					oauth_token_secret: oauth_token_secret, 
+					oauth_token: creds.oauth_token,
+					oauth_token_secret: creds.oauth_token_secret, 
 					expires_in: creds.expires_in,
 					token_type: creds.token_type,
 					request: creds.request	

@@ -59,8 +59,10 @@ app.post('/oauth/signin', function (req, res) {
 			var cipher = crypto.createCipher(algorithm, key);  
 			var encryptedToken = cipher.update(JSON.stringify(tokenObj), 'utf8', 'hex') + cipher.final('hex');
 			user_data.credentials =  {
-				provider: {						
+				provider: {
 					access_token: creds.access_token,
+					oauth_token: oauth_token,
+					oauth_token_secret: oauth_token_secret, 
 					expires_in: creds.expires_in,
 					token_type: creds.token_type,
 					request: creds.request	

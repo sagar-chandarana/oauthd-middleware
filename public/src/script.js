@@ -1,12 +1,12 @@
 function init_oauthio() {
 	OAuth.initialize(credentials.key);
-	OAuth.setOAuthdURL("http://localhost:6284");
+	OAuth.setOAuthdURL("http://192.237.202.131:6284");
 }
 
 function retrieve_token(callback) {
 	$.ajax({
 		url: '/oauth/token',
-		success: function(data, status) {
+		success: function(data,status) {
 			callback(null, data);
 		},
 		error: function(data) {

@@ -29,9 +29,12 @@ oauth.setOAuthdUrl("http://localhost:6284", '/');
 
 /* Endpoints */
 app.get('/oauth/token', function (req, res) {
-	var token = oauth.generateStateToken(req.session);
-	console.log('sessoin after token:', req.session);
-	res.json(token);
+        try {
+		var token = oauth.generateStateToken(req.session);
+		res.json(token);
+	} catch (e) {
+ 		res.status(500).send('Error while generating state-token' + e);
+	}
 });
 
 app.post('/oauth/signin', function (req, res) {
@@ -84,12 +87,12 @@ app.post('/oauth/signin', function (req, res) {
 			})
 			.fail(function (e) {
 				console.log('sigin error', e)
-				res.status(400).send(e);
+				res.status(500).send(e);
 			});
 		})
 		.fail(function (e) {
 			console.log('signin error', e);
-			res.status(400).send(e);
+			res.status(500).send(e);
 		});
 		
 	});

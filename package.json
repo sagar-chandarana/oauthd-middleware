@@ -9,14 +9,16 @@
   "author": "oauth.io",
   "license": "Apache2",
   "dependencies": {
-    "express": "^4.1.2",
-    "oauthio": "^0.3.1",
-    "cookie-parser": "^1.0.1",
-    "express-session": "^1.0.4",
     "body-parser": "^1.0.2",
-    "crypto": "0.0.3",
+    "cookie-parser": "^1.0.1",
     "cors": "~2.4.2",
-    "request": "~2.44.0",
-    "q": "~1.0.1"
+    "crypto": "0.0.3",
+    "express": "^4.1.2",
+    "express-session": "^1.0.4",
+    "hiredis": "^0.1.17",
+    "oauthio": "^0.3.1",
+    "q": "~1.0.1",
+    "redis": "^0.12.1",
+    "request": "~2.44.0"
   }
 }

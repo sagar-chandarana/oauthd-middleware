@@ -50,8 +50,6 @@ app.use(bodyParser.json());
 var oauth = require('oauthio');
 oauth.setOAuthdUrl("http://localhost:6284", '/');
 
-var getSecret = 
-
 /* Endpoints */
 app.post('/oauth/signin', function (req, res) {
 	var code = req.body.code;

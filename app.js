@@ -91,7 +91,7 @@ app.post('/oauth/signin', function (req, res) {
 					},
 					appbase: {
 						access_token: encryptedToken,
-						expires_in: tokenObj["e"]
+						expires_in: tokenObj["e"]/1000
 					}
 				}
 				stateStore.set(tokenObj.uuid, tokenObj.e, JSON.stringify(state), console.log.bind(console));
@@ -111,12 +111,29 @@ app.post('/oauth/signin', function (req, res) {
 
 app.post('/oauth/refresh', function(req, res) {
 	var tokenObj = crypt.decrypt(req.body.appbase_token);
-	if(tokenObj) {
-		stateStore.get(tokenObj.uuid, function(error, state) {
-			res.json(state);
-		})
+	if(tokenObj && (tokenObj.g + tokenObj.e >= Date.now())) {
+		var credentials = {};
+
+		if(req.body.appbase) {
+			tokenObj.g = Date.now();
+			credentials.appbase = {
+				access_token: crypt.encrypt(tokenObj),
+				expires_in: tokenObj["e"]/1000
+			};
+		}
+
+		if(req.body.provider) {
+			stateStore.get(tokenObj.uuid, function(error, state) {
+				try {
+					state = JSON.parse(state);
+				} catch(e) {
+					res.status(500).send("Error retriving provider token:" + e);
+				}
+			})
+		}
+		res.json(credentials);
 	} else {
-		res.status(400).send('Invalid Token');
+		res.status(400).send('Invalid or expired appbase_token');
 	}
 })
 

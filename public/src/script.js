@@ -38,12 +38,7 @@ function retrieve_user_info(data, callback) {
 	console.log('creds', data);
 	var request = reqObj = OAuth.create('google', data.credentials.provider);
 	callback(data)
-  $.post(config.oauth_middleware + '/oauth/refresh', {appbase_token: data.credentials.appbase.access_token}).done(console.log.bind(console)).fail(console.log.bind(console))
-}
-
-function random() {
-console.log('calling random.')
-$.ajax({url: '/random', success: console.log.bind(console), error: console.error.bind(console)});
+  $.post(config.oauth_middleware + '/oauth/refresh', {provider:true, appbase: true, appbase_token: data.credentials.appbase.access_token}).done(console.log.bind(console)).fail(console.log.bind(console))
 }
 
 function go() {

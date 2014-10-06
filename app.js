@@ -50,16 +50,17 @@ app.use(bodyParser.json());
 var oauth = require('oauthio');
 oauth.setOAuthdUrl("http://localhost:6284", '/');
 
+var getSecret = 
+
 /* Endpoints */
 app.post('/oauth/signin', function (req, res) {
 	var code = req.body.code;
 	var app = req.body.app;
 	var provider = req.body.provider;
 	var state = {};
-	console.log('session at signin', state);
+	state.provider = provider;
 	request.get(oauth.getOAuthdUrl() + '/api/apps/' + app, function(error, responseFromOauthd) {
 	    if(error) {
-			console.log('signin', responseFromOauthd? responseFromOauthd.body: e);
 			res.status(400).send(responseFromOauthd? responseFromOauthd.body: e);
 	    }
 		var secret = JSON.parse(responseFromOauthd.body).data.secret;
@@ -77,7 +78,7 @@ app.post('/oauth/signin', function (req, res) {
 			request_object.me()
 			.then(function (user_data) {
 				var creds = request_object.getCredentials(); 
-				var tokenObj = {"appname": app, "g": Date.now(), "e": 24 * 3600 * 1000, "email": user_data.email, 'uuid': uuid()}; //24 hours token
+				var tokenObj = {"a": app, "g": Date.now(), "e": 24 * 3600 * 1000, "email": user_data.email, 'uuid': uuid()}; //24 hours token
 				var encryptedToken = crypt.encrypt(tokenObj);
 				user_data.credentials =  {
 					provider: {
@@ -94,16 +95,14 @@ app.post('/oauth/signin', function (req, res) {
 						expires_in: tokenObj["e"]/1000
 					}
 				}
-				stateStore.set(tokenObj.uuid, tokenObj.e, JSON.stringify(state), console.log.bind(console));
+				stateStore.set(tokenObj.uuid, tokenObj.e, JSON.stringify(state));
 				res.status(200).send(user_data);
 			})
 			.fail(function (e) {
-				console.log('sigin error', e)
 				res.status(500).send(e);
 			});
 		})
 		.fail(function (e) {
-			console.log('signin error', e);
 			res.status(500).send(e);
 		});
 	});
@@ -113,25 +112,61 @@ app.post('/oauth/refresh', function(req, res) {
 	var tokenObj = crypt.decrypt(req.body.appbase_token);
 	if(tokenObj && (tokenObj.g + tokenObj.e >= Date.now())) {
 		var credentials = {};
-
-		if(req.body.appbase) {
+		if(req.body.for_appbase) {
 			tokenObj.g = Date.now();
 			credentials.appbase = {
 				access_token: crypt.encrypt(tokenObj),
 				expires_in: tokenObj["e"]/1000
 			};
 		}
-
-		if(req.body.provider) {
+		if(req.body.for_provider) {
 			stateStore.get(tokenObj.uuid, function(error, state) {
 				try {
 					state = JSON.parse(state);
+					if(!state) {
+						res.status(500).send("Error retriving provider token.");
+					}
+					request.get(oauth.getOAuthdUrl() + '/api/apps/' + tokenObj.a, function(error, responseFromOauthd) {
+					    if(error) {
+							res.status(400).send(responseFromOauthd? responseFromOauthd.body: e);
+					    }
+						var secret = JSON.parse(responseFromOauthd.body).data.secret;
+						oauth.auth(state.provider, state, {
+							public_key: tokenObj.a,
+							secret_key: secret,
+							force_refresh: true
+						})
+						.then(function (request_object) {
+							// Here the user is authenticated, and the access token 
+							// for the requested provider is stored in the session.
+							// Continue the tutorial or checkout the step-4 to get
+							// the code for the request
+							var creds = request_object.getCredentials();
+							var encryptedToken = crypt.encrypt(tokenObj);
+							credentials.provider = {
+								provider: state.provider,
+								access_token: creds.access_token,
+								oauth_token: creds.oauth_token,
+								oauth_token_secret: creds.oauth_token_secret, 
+								expires_in: creds.expires_in,
+								token_type: creds.token_type,
+								request: creds.request	
+							}
+
+							stateStore.set(tokenObj.uuid, tokenObj.e, JSON.stringify(state));
+							res.json(credentials);
+						})
+						.fail(function (e) {
+							res.status(500).send(e);
+						});
+					});
 				} catch(e) {
 					res.status(500).send("Error retriving provider token:" + e);
 				}
 			})
+		} else {
+			res.json(credentials);
 		}
-		res.json(credentials);
 	} else {
 		res.status(400).send('Invalid or expired appbase_token');
 	}

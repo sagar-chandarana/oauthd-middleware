@@ -1,12 +1,12 @@
-function init_oauthio() {
-	OAuth.initialize(credentials.key);
-	OAuth.setOAuthdURL("http://192.237.202.131:6284");
-}
 
+function init_oauthio() {
+	OAuth.initialize(config.app);
+	OAuth.setOAuthdURL(config.oauthd);
+}
 function retrieve_token(callback) {
 	$.ajax({
-		url: '/oauth/token',
-		success: function(data,status) {
+		url: config.oauth_middleware + '/oauth/token',
+		success: function(data, status) {
 			callback(null, data);
 		},
 		error: function(data) {
@@ -26,13 +26,12 @@ function authenticate(token, callback) {
 	})
 		.done(function(r) {
 			$.ajax({
-				url: '/oauth/signin',
+				url: config.oauth_middleware + '/oauth/signin',
 				method: 'POST',
 				data: {
-				    app: credentials.key,
-					code: r.code,
-					secret: credentials.secret,
-					provider: 'google'
+				    app: config.app,
+					  code: r.code,
+					  provider: 'google'
 				},
 				success: function(data, status) {
 					callback(null, data);
@@ -51,6 +50,7 @@ function retrieve_user_info(data, callback) {
 	console.log('creds', data);
 	var request = reqObj = OAuth.create('google', data.credentials.provider);
 	callback(data)
+  $.post(config.oauth_middleware + '/oauth/refresh', {appbase_token: data.credentials.appbase.access_token}).done(console.log.bind(console)).fail(console.log.bind(console))
 }
 
 function random() {

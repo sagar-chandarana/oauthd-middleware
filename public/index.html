@@ -60,45 +60,13 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-xs-6">
-                        <div class="alert alert-info">
-                            <strong>Don't forget to restart the server if you made changes on the backend.</strong>
-<pre>$ node app.js</pre>
-                        </div>
-
-                        <div class="alert alert-warning token_endpoint_missing missing">
-                            <div>State token endpoint not available. Go to <strong>step-2</strong> if you want to skip that step.</div>
-                            <div>Note that all your changes will be discarded</div>
-<pre>$ git checkout step-2 --force</pre>
-                        </div>
-                        <div class="alert alert-success token_endpoint_available available">
-                            <div>Token endpoint is available on <strong>/oauth/token</strong></div>
-                        </div>
-                        <div class="alert alert-warning auth_endpoint_missing missing">
-                            <div>Auth endpoint not available. Go to <strong>step-3</strong> if you want to skip that step.</div>
-                            <div>Note that all your changes will be discarded</div>
-<pre>$ git checkout step-3 --force</pre>
-                        </div>
-                        <div class="alert alert-success auth_endpoint_available available">
-                            <div>Auth endpoint is available on <strong>/oauth/signin</strong></div>
-                        </div>
-                        <div class="alert alert-warning request_endpoint_missing missing">
-                            <div>Request endpoint not available. Go to <strong>step-4</strong> if you want to skip that step.</div>
-                            <div>Note that all your changes will be discarded</div>
-<pre>$ git checkout step-4 --force</pre>
-                        </div>
-                        <div class="alert alert-success request_endpoint_available available">
-                            <div>Request endpoint is available on <strong>/me</strong></div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
         <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
         <script src="src/oauth.js"></script>
-        <script src="src/background.js"></script>
-        <script src="src/credentials.js"></script>
+        <script src="src/config.js"></script>
         <script src="src/script.js"></script>
+        <script src="src/appbase.js"></script>
     </body>
 </html>

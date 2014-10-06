@@ -51,15 +51,6 @@ var oauth = require('oauthio');
 oauth.setOAuthdUrl("http://localhost:6284", '/');
 
 /* Endpoints */
-app.get('/oauth/token', function (req, res) {
-        try {
-		var token = oauth.generateStateToken({});
-		res.json(token);
-	} catch (e) {
- 		res.status(500).send('Error while generating state-token' + e);
-	}
-});
-
 app.post('/oauth/signin', function (req, res) {
 	var code = req.body.code;
 	var app = req.body.app;

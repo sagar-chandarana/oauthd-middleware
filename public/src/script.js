@@ -3,21 +3,9 @@ function init_oauthio() {
 	OAuth.initialize(config.app);
 	OAuth.setOAuthdURL(config.oauthd);
 }
-function retrieve_token(callback) {
-	$.ajax({
-		url: config.oauth_middleware + '/oauth/token',
-		success: function(data, status) {
-			callback(null, data);
-		},
-		error: function(data) {
-			callback(data);
-		}
-	});
-}
 
-function authenticate(token, callback) {
+function authenticate(callback) {
 	OAuth.popup('google', {
-		state: token,
 		// Google requires the following field 
 		// to get a refresh token
 		authorize: {
@@ -60,18 +48,16 @@ $.ajax({url: '/random', success: console.log.bind(console), error: console.error
 
 function go() {
 	init_oauthio();
-	retrieve_token(function(err, token) {
-		authenticate(token, function(err, creds) {
-			if (!err) {
-				retrieve_user_info(creds, function(user_data) {
-					$('#name_box').html(user_data.firstname)
-					$('#email_box').html(user_data.email);
-					$('#img_box').attr('src', user_data.avatar);
-				});
-			} else {
-				console.error(err)
-			}
-		});
+	authenticate(function(err, creds) {
+		if (!err) {
+			retrieve_user_info(creds, function(user_data) {
+				$('#name_box').html(user_data.firstname)
+				$('#email_box').html(user_data.email);
+				$('#img_box').attr('src', user_data.avatar);
+			});
+		} else {
+			console.error(err)
+		}
 	});
 }
 

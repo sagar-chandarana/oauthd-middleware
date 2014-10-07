@@ -68,11 +68,6 @@ app.post('/oauth/signin', function (req, res) {
 			secret_key: secret
 		})
 		.then(function (request_object) {
-			// Here the user is authenticated, and the access token 
-			// for the requested provider is stored in the session.
-			// Continue the tutorial or checkout the step-4 to get
-			// the code for the request
-		
 			request_object.me()
 			.then(function (user_data) {
 				var creds = request_object.getCredentials(); 
@@ -135,10 +130,6 @@ app.post('/oauth/refresh', function(req, res) {
 							force_refresh: true
 						})
 						.then(function (request_object) {
-							// Here the user is authenticated, and the access token 
-							// for the requested provider is stored in the session.
-							// Continue the tutorial or checkout the step-4 to get
-							// the code for the request
 							var creds = request_object.getCredentials();
 							var encryptedToken = crypt.encrypt(tokenObj);
 							credentials.provider = {

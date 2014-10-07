@@ -1,25 +1,23 @@
-
 function init_oauthio() {
 	OAuth.initialize(config.app);
 	OAuth.setOAuthdURL(config.oauthd);
 }
 
 function authenticate(callback) {
-	OAuth.popup('google', {
+	OAuth.popup(config.provider, {
 		// Google requires the following field 
 		// to get a refresh token
-		authorize: {
-		    approval_prompt: 'force'
-		}
+		
 	})
 		.done(function(r) {
+			console.log('from provider:', r);
 			$.ajax({
 				url: config.oauth_middleware + '/oauth/signin',
 				method: 'POST',
 				data: {
 				    app: config.app,
 					  code: r.code,
-					  provider: 'google'
+					  provider: config.provider
 				},
 				success: function(data, status) {
 					callback(null, data);
@@ -36,7 +34,7 @@ function authenticate(callback) {
 
 function retrieve_user_info(data, callback) {
 	console.log('creds', data);
-	var request = reqObj = OAuth.create('google', data.credentials.provider);
+	var request = reqObj = OAuth.create(config.provider, data.credentials.provider);
 	callback(data)
   $.post(config.oauth_middleware + '/oauth/refresh', {for_provider:true, for_appbase: true, appbase_token: data.credentials.appbase.access_token}).done(console.log.bind(console)).fail(console.log.bind(console))
 }

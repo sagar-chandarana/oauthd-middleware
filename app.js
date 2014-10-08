@@ -71,7 +71,7 @@ app.post('/oauth/signin', function (req, res) {
 			request_object.me()
 			.then(function (user_data) {
 				var creds = request_object.getCredentials(); 
-				var tokenObj = {"a": app, "g": Date.now(), "e": 24 * 3600 * 1000, "email": user_data.email, 'uuid': uuid()}; //24 hours token
+				var tokenObj = {"a": app, "g": Date.now(), "e": 24 * 3600 * 1000, "uid": creds.provider + ':' + user_data.uid, 'uuid': uuid()}; //24 hours token
 				var encryptedToken = crypt.encrypt(tokenObj);
 				user_data.credentials =  {
 					provider: {

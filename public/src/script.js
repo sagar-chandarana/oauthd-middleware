@@ -5,9 +5,9 @@ function init_oauthio() {
 
 function authenticate(callback) {
 	OAuth.popup(config.provider, {
-		// Google requires the following field 
-		// to get a refresh token
-		
+		authorize: {
+		    scope: ['openid']
+		}
 	})
 		.done(function(r) {
 			console.log('from provider:', r);

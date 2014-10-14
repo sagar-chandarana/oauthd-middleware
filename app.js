@@ -61,17 +61,17 @@ app.post('/oauth/signin', function (req, res) {
 	    if(error) {
 			res.status(400).send(responseFromOauthd? responseFromOauthd.body: e);
 	    }
-		var secret = JSON.parse(responseFromOauthd.body).data.secret;
+        var appData = JSON.parse(responseFromOauthd.body).data;
 		oauth.auth(provider, state, {
 			code: code,
 			public_key: app,
-			secret_key: secret
+			secret_key: appData.secret
 		})
 		.then(function (request_object) {
 			request_object.me()
 			.then(function (user_data) {
 				var creds = request_object.getCredentials(); 
-				var tokenObj = {"a": app, "g": Date.now(), "e": 24 * 3600 * 1000, "uid": creds.provider + ':' + user_data.uid, 'uuid': uuid()}; //24 hours token
+				var tokenObj = {"a": app, "g": Date.now(), "e": 1000 * (appData.tokenExpiry>0? appData.tokenExpiry: 24 * 3600), "uid": creds.provider + ':' + user_data.uid, 'uuid': uuid()}; //by default 24 hours token
 				var encryptedToken = crypt.encrypt(tokenObj);
 				user_data.credentials =  {
 					provider: {

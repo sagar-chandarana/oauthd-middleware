@@ -6,7 +6,7 @@ function init_oauthio() {
 function authenticate(callback) {
 	OAuth.popup(config.provider, {
 		authorize: {
-		    scope: ['openid']
+		    scope: ['openid email']
 		}
 	})
 		.done(function(r) {
